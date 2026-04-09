@@ -1,4 +1,4 @@
-# Pasteles UPBC - Sistema de Ventas y Pedidos
+# LottaGourmet - Sistema de Ventas y Pedidos
 
 ## Descripción
 Sistema web responsivo para gestión de ventas de pasteles, promociones y pedidos personalizados. Incluye soporte para el inicio de sesión de usuarios, un carrito de compras interactivo, generación dinámica de catálogos y un panel administrativo completo con gráficas en tiempo real. 
