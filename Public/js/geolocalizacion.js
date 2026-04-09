@@ -63,9 +63,7 @@ btn.addEventListener("click", () => {
                 out.textContent =
                     `Tu ubicación\n` +
                     `${mensajeCobertura}\n\n` +
-                    `Te encuentras en:\n` +
-                    `Calle: ${road || "No disponible"}\n` +
-                    `Ciudad: ${ciudadNombre}\n` +
+                    `Te encuentras en: ${road || "No disponible"}, ${ciudadNombre}\n` +
                     `Precisión: ±${accuracy.toFixed(0)} metros\n\n` +
                     `Nos encontramos en: \n` +
                     `${LOCAL_COORDS.direccion}`;
