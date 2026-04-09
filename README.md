@@ -1,2 +1,0 @@
-# LottaGourmetV2
-LottaGourmet
