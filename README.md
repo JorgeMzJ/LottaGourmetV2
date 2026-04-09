@@ -42,8 +42,8 @@ LottaGourmet/
 ### 2. Base de Datos
 1. Abre el panel de control de **XAMPP** e inicia de manera simultánea `Apache` y `MySQL`.
 2. Ve a [http://localhost/phpmyadmin](http://localhost/phpmyadmin).
-3. Crea una base de datos nueva llamada `lottagourmet`.
-4. Importa en esa base de datos recién creada el script SQL de respaldo provisto con el proyecto o (`lottagourmet.sql`).
+3. Crea una base de datos nueva llamada `pastelesupbc`.
+4. Importa en esa base de datos recién creada el script SQL de respaldo provisto con el proyecto o (`pastelesupbc.sql`).
 
 ### 3. Conexiones a la BD (Database.php)
 Debes verificar que el entorno coincida dentro del archivo `Config/Database.php`. La clase `Database` maneja la conexión. Tienes dos plantillas en caso de subir este desarrollo a producción:
