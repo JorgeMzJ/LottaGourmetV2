@@ -53,7 +53,7 @@ Debes verificar que el entorno coincida dentro del archivo `Config/Database.php`
 <?php
 class Database {
     private $host = "localhost";
-    private $db_name = "lottagourmet";
+    private $db_name = "pastelesupbc";
     private $username = "root";
     private $password = "";
     public $conn;
@@ -67,7 +67,7 @@ class Database {
 ```php
 <?php
 class Database {
-    private $host = "lottagourmet.byethost24.com";
+    private $host = "pastelesupbc.byethost24.com";
     private $db_name = "sql202.byethost24.com";
     private $username = "b24_40405106";
     private $password = "bf86ph1n";
