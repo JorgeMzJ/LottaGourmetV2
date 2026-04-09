@@ -23,11 +23,49 @@ function calcularDistanciaKM(lat1, lon1, lat2, lon2) {
     return R * c;
 }
 
+let locationFetched = false;
+
+// Intentar recuperar de sessionStorage
+const cachedGeoText = sessionStorage.getItem("geoText");
+const cachedGeoVisible = sessionStorage.getItem("geoVisible");
+
+if (cachedGeoText) {
+    locationFetched = true;
+    out.textContent = cachedGeoText;
+    
+    if (cachedGeoVisible === "true") {
+        out.style.display = "block";
+        btn.textContent = "Ocultar mi zona";
+    } else {
+        out.style.display = "none";
+        btn.textContent = "Verificar mi zona";
+    }
+} else {
+    out.style.display = "none";
+}
+
 btn.addEventListener("click", () => {
+    // Si ya obtuvimos la ubicación, solo ocultar o mostrar
+    if (locationFetched) {
+        if (out.style.display === "none") {
+            out.style.display = "block";
+            btn.textContent = "Ocultar mi zona";
+            sessionStorage.setItem("geoVisible", "true");
+        } else {
+            out.style.display = "none";
+            btn.textContent = "Verificar mi zona";
+            sessionStorage.setItem("geoVisible", "false");
+        }
+        return;
+    }
+
+    out.style.display = "block";
     out.textContent = "Obteniendo ubicación...";
+    btn.disabled = true;
 
     if (!("geolocation" in navigator)) {
         out.textContent = "El navegador no soporta geolocalización.";
+        btn.disabled = false;
         return;
     }
 
@@ -72,9 +110,16 @@ btn.addEventListener("click", () => {
                 out.textContent = `${mensajeCobertura}\n\n(Error al obtener dirección detallada)`;
                 console.error("Error en Fetch:", err);
             }
+
+            locationFetched = true;
+            btn.textContent = "Ocultar mi zona";
+            btn.disabled = false;
+            sessionStorage.setItem("geoText", out.textContent);
+            sessionStorage.setItem("geoVisible", "true");
         },
         (err) => {
             out.textContent = `Error GPS: ${err.message}`;
+            btn.disabled = false;
         },
         { enableHighAccuracy: true, timeout: 10000 }
     );
