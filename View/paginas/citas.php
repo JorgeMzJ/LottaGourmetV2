@@ -85,7 +85,7 @@ $emailUsuario = $_SESSION['usuario_email'] ?? '';
 						style="display: none; background: #e8f5e9; padding: 10px; border-radius: 8px; border: 1px solid #c8e6c9; margin-top: 10px;">
 						<label for="api-fecha-entrega" style="color: #2e7d32;">📅 Selecciona tu fecha de
 							recolección</label>
-						<input type="date" id="api-fecha-entrega" name="fecha_entrega" required>
+						<input type="date" id="api-fecha-entrega" name="fecha_entrega" min="<?php echo date('Y-m-d'); ?>" required>
 					</div>
 
 					<div style="display: flex; gap: 10px; margin-top: 15px;">
@@ -187,7 +187,7 @@ $emailUsuario = $_SESSION['usuario_email'] ?? '';
 						</div>
 						<div class="form-group">
 							<label for="paquete-fecha">Fecha del Evento</label>
-							<input type="date" id="paquete-fecha" required>
+							<input type="date" id="paquete-fecha" min="<?php echo date('Y-m-d'); ?>" required>
 						</div>
 						<div style="font-size: 1.2em; font-weight: bold; text-align: right; margin: 15px 0;">
 							Total estimado: <span id="paquete-total-estimado" style="color: var(--accent);">$0</span>
