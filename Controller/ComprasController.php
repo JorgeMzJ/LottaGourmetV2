@@ -1,27 +1,36 @@
 <?php
 // Controller/ComprasController.php
-class ComprasController {
-    
-    public function confirmar() {
-        if (session_status() === PHP_SESSION_NONE) session_start();
-        
+require_once 'vendor/autoload.php';
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+class ComprasController
+{
+
+    public function confirmar()
+    {
+        if (session_status() === PHP_SESSION_NONE)
+            session_start();
+
         // Verificar que haya items en el carrito desde POST
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['carrito'])) {
             $_SESSION['carrito_compra'] = json_decode($_POST['carrito'], true);
         }
-        
+
         if (empty($_SESSION['carrito_compra'])) {
             header('Location: ' . BASE_URL . 'menu');
             exit;
         }
-        
+
         require_once 'View/plantillas/header.php';
         require_once 'View/plantillas/sidebar.php';
         require_once 'View/paginas/confirmacion_compra.php';
         require_once 'View/plantillas/footer.php';
     }
 
-    private function buildAbsoluteUrl(string $path): string {
+    private function buildAbsoluteUrl(string $path): string
+    {
         $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
         $host = $_SERVER['HTTP_HOST'] ?? ($_SERVER['SERVER_NAME'] ?? 'localhost');
         $base = rtrim(BASE_URL, '/');
@@ -29,7 +38,8 @@ class ComprasController {
         return $scheme . '://' . $host . ($base ? $base . '/' : '') . $path;
     }
 
-    private function ensureStripeCartSessionStore(): void {
+    private function ensureStripeCartSessionStore(): void
+    {
         if (!isset($_SESSION['stripe_cart_sessions']) || !is_array($_SESSION['stripe_cart_sessions'])) {
             $_SESSION['stripe_cart_sessions'] = [];
         }
@@ -38,7 +48,8 @@ class ComprasController {
         }
     }
 
-    private function storeStripeCartSessionData(string $stripeSessionId, array $cart, float $total): void {
+    private function storeStripeCartSessionData(string $stripeSessionId, array $cart, float $total): void
+    {
         $this->ensureStripeCartSessionStore();
         $_SESSION['stripe_cart_sessions'][$stripeSessionId] = [
             'user_id' => $_SESSION['usuario_id'],
@@ -49,27 +60,31 @@ class ComprasController {
         ];
     }
 
-    private function getStripeCartSessionData(string $stripeSessionId): ?array {
+    private function getStripeCartSessionData(string $stripeSessionId): ?array
+    {
         $this->ensureStripeCartSessionStore();
         return $_SESSION['stripe_cart_sessions'][$stripeSessionId] ?? null;
     }
 
-    private function markStripeCartSaved(string $stripeSessionId, int $compraId): void {
+    private function markStripeCartSaved(string $stripeSessionId, int $compraId): void
+    {
         $this->ensureStripeCartSessionStore();
         $_SESSION['stripe_cart_saved'][$stripeSessionId] = $compraId;
     }
 
-    private function getSavedStripeCartPurchaseId(string $stripeSessionId): ?int {
+    private function getSavedStripeCartPurchaseId(string $stripeSessionId): ?int
+    {
         $this->ensureStripeCartSessionStore();
-        return isset($_SESSION['stripe_cart_saved'][$stripeSessionId]) ? (int)$_SESSION['stripe_cart_saved'][$stripeSessionId] : null;
+        return isset($_SESSION['stripe_cart_saved'][$stripeSessionId]) ? (int) $_SESSION['stripe_cart_saved'][$stripeSessionId] : null;
     }
 
-    private function saveCartPurchaseToDatabase(PDO $db, array $cartData): int {
+    private function saveCartPurchaseToDatabase(PDO $db, array $cartData): int
+    {
         $db->beginTransaction();
 
         $nombre = trim($cartData['user_name'] ?? '') ?: 'Cliente de carrito';
         $email = trim($cartData['user_email'] ?? '');
-        $total = (float)($cartData['total'] ?? 0);
+        $total = (float) ($cartData['total'] ?? 0);
         $cart = $cartData['cart'] ?? [];
 
         $stmt = $db->prepare('INSERT INTO compras (fecha, total, nombre_cliente, email_cliente) VALUES (NOW(), :total, :nombre, :email)');
@@ -77,7 +92,7 @@ class ComprasController {
         $stmt->bindValue(':nombre', $nombre);
         $stmt->bindValue(':email', $email);
         $stmt->execute();
-        $id_compra = (int)$db->lastInsertId();
+        $id_compra = (int) $db->lastInsertId();
 
         $stmtDetalle = $db->prepare('INSERT INTO compra_detalles (id_compra, id_producto, cantidad, precio_unitario) VALUES (:id_compra, :id_producto, :cantidad, :precio_unitario)');
 
@@ -89,11 +104,11 @@ class ComprasController {
             $stmtDetalle->execute();
 
             $stmtUpdate = $db->prepare('UPDATE productos SET stock = stock - :cantidad WHERE id_producto = :id AND stock >= :cantidad');
-            $stmtUpdate->bindValue(':cantidad', (int)$item['cantidad'], PDO::PARAM_INT);
-            $stmtUpdate->bindValue(':id', (int)$item['id'], PDO::PARAM_INT);
+            $stmtUpdate->bindValue(':cantidad', (int) $item['cantidad'], PDO::PARAM_INT);
+            $stmtUpdate->bindValue(':id', (int) $item['id'], PDO::PARAM_INT);
             $stmtUpdate->execute();
             if ($stmtUpdate->rowCount() === 0) {
-                throw new Exception('No se pudo actualizar stock para el producto ID ' . (int)$item['id']);
+                throw new Exception('No se pudo actualizar stock para el producto ID ' . (int) $item['id']);
             }
         }
 
@@ -101,8 +116,10 @@ class ComprasController {
         return $id_compra;
     }
 
-    public function procesar() {
-        if (session_status() === PHP_SESSION_NONE) session_start();
+    public function procesar()
+    {
+        if (session_status() === PHP_SESSION_NONE)
+            session_start();
         header('Content-Type: application/json; charset=utf-8');
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -148,12 +165,12 @@ class ComprasController {
                 $stmtStock->execute();
                 $row = $stmtStock->fetch(PDO::FETCH_ASSOC);
                 if (!$row) {
-                    $insuficientes[] = 'Producto no encontrado (ID ' . (int)$item['id'] . ')';
+                    $insuficientes[] = 'Producto no encontrado (ID ' . (int) $item['id'] . ')';
                     continue;
                 }
-                $stockActual = (int)$row['stock'];
+                $stockActual = (int) $row['stock'];
                 $nombreProd = $row['nombre'];
-                if ($stockActual < (int)$item['cantidad']) {
+                if ($stockActual < (int) $item['cantidad']) {
                     $insuficientes[] = $nombreProd . ' (stock disponible: ' . $stockActual . ')';
                 }
                 $total += ($item['precio'] * $item['cantidad']);
@@ -164,23 +181,27 @@ class ComprasController {
                 return;
             }
 
+            $description = 'Compra de ' . count($carrito) . ' productos en Lotta Gourmet';
+            
             $body = [
                 'payment_method_types[]' => 'card',
                 'mode' => 'payment',
                 'success_url' => $this->buildAbsoluteUrl('compras/stripe-success?session_id={CHECKOUT_SESSION_ID}'),
-                'cancel_url' => $this->buildAbsoluteUrl('compras/confirmar'),
-                'metadata[usuario_id]' => $_SESSION['usuario_id'],
+                'cancel_url' => $this->buildAbsoluteUrl('menu'),
+                'metadata[usuario_id]' => $usuario_id,
                 'metadata[tipo_compra]' => 'carrito',
-                'metadata[usuario_nombre]' => $_SESSION['usuario_nombre'] ?? '',
-                'metadata[correo]' => $_SESSION['usuario_email'] ?? '',
+                'metadata[usuario_nombre]' => $usuario['nombre'],
+                'metadata[correo]' => $usuario['email']
             ];
 
-            foreach ($carrito as $index => $item) {
-                $body['line_items[' . $index . '][price_data][currency]'] = 'mxn';
-                $body['line_items[' . $index . '][price_data][product_data][name]'] = $item['nombre'];
-                $body['line_items[' . $index . '][price_data][product_data][description]'] = 'Cantidad: ' . $item['cantidad'];
-                $body['line_items[' . $index . '][price_data][unit_amount]'] = (int)round($item['precio'] * 100);
-                $body['line_items[' . $index . '][quantity]'] = (int)$item['cantidad'];
+            $i = 0;
+            foreach ($carrito as $item) {
+                // Formatting according to Stripe API requirements
+                $body['line_items[' . $i . '][price_data][currency]'] = 'mxn';
+                $body['line_items[' . $i . '][price_data][product_data][name]'] = $item['nombre'];
+                $body['line_items[' . $i . '][price_data][unit_amount]'] = (int) round($item['precio'] * 100);
+                $body['line_items[' . $i . '][quantity]'] = $item['cantidad'];
+                $i++;
             }
 
             $ch = curl_init('https://api.stripe.com/v1/checkout/sessions');
@@ -203,6 +224,7 @@ class ComprasController {
             $stripeResponse = json_decode($response, true);
             if (isset($stripeResponse['id'])) {
                 $this->storeStripeCartSessionData($stripeResponse['id'], $carrito, $total);
+                
                 echo json_encode(['success' => true, 'id' => $stripeResponse['id']]);
                 return;
             }
@@ -218,8 +240,10 @@ class ComprasController {
         }
     }
 
-    public function stripeSuccess($session_id = null) {
-        if (session_status() === PHP_SESSION_NONE) session_start();
+    public function stripeSuccess($session_id = null)
+    {
+        if (session_status() === PHP_SESSION_NONE)
+            session_start();
 
         if (!$session_id) {
             $session_id = $_GET['session_id'] ?? null;
@@ -246,7 +270,7 @@ class ComprasController {
             } else {
                 $sessionDetails = json_decode($response, true);
                 if (!isset($sessionDetails['payment_status']) || $sessionDetails['payment_status'] !== 'paid') {
-                    $errorMessage = 'El pago no se completó correctamente. Si ya realizaste el pago, espera unos minutos y revisa tu correo.';
+                    $errorMessage = 'El pago no se completo correctamente. Si ya realizaste el pago, espera unos minutos y revisa tu correo.';
                 } else {
                     $savedPurchaseId = $this->getSavedStripeCartPurchaseId($session_id);
                     if (!$savedPurchaseId) {
@@ -263,6 +287,9 @@ class ComprasController {
                                 $savedPurchaseId = $this->saveCartPurchaseToDatabase($db, $cartData);
                                 $this->markStripeCartSaved($session_id, $savedPurchaseId);
                                 unset($_SESSION['carrito_compra']);
+
+                                // Enviar correo de confirmación
+                                $this->enviarCorreoConfirmacion($cartData['user_name'], $cartData['user_email'], date('Y-m-d H:i:s'), $cartData['cart'], $cartData['total']);
                             } catch (Exception $e) {
                                 $errorMessage = 'Pago confirmado, pero no se pudo guardar la compra: ' . $e->getMessage();
                             }
@@ -277,6 +304,54 @@ class ComprasController {
         require_once 'View/paginas/compras_pago_exito.php';
         require_once 'View/plantillas/footer.php';
         exit;
+    }
+
+    private function enviarCorreoConfirmacion($nombreUsuario, $correoDestino, $fecha, $carrito, $total)
+    {
+        $mail = new PHPMailer(true);
+
+        try {
+            $mail->SMTPDebug = 0;
+            $mail->isSMTP();
+            $mail->Host = 'sandbox.smtp.mailtrap.io';
+            $mail->SMTPAuth = true;
+            $mail->Port = 2525;
+            $mail->Username = '9419fba30adf8b';
+            $mail->Password = '4b172e39aaca98';
+
+            $mail->setFrom('sistema@upbc.edu.mx', 'Notificaciones ITID');
+            $mail->addAddress($correoDestino, $nombreUsuario);
+
+            $mail->isHTML(true);
+            $mail->Subject = "Confirmación de Pago - Lotta Gourmet";
+
+            // Formatear detalles de la compra
+            $detalles = '';
+            foreach ($carrito as $item) {
+                $subtotal = $item['precio'] * $item['cantidad'];
+                $detalles .= htmlspecialchars($item['nombre']) . ' - Cantidad: ' . $item['cantidad'] . ' - Precio: $' . number_format($item['precio'], 2) . ' - Subtotal: $' . number_format($subtotal, 2) . '<br>';
+            }
+            $detalles .= '<br><strong>Total: $' . number_format($total, 2) . '</strong>';
+
+            $mail->Body = "
+                <div style='font-family: sans-serif; border: 1px solid #ddd; padding: 25px; border-radius: 10px; max-width: 600px;'>
+                    <h1 style='color: #0d6efd;'>Hola, $nombreUsuario!</h1>
+                    <p>Tu pago ha sido confirmado exitosamente.</p>
+                    <p style='background: #f8f9fa; padding: 10px; border-left: 4px solid #0d6efd;'>
+                        <b>Fecha de la transaccion:</b> $fecha <br>
+                        <b>Detalles de la compra:</b><br>
+                        $detalles
+                    </p>
+                    <p>Gracias por tu compra en Lotta Gourmet.</p>
+                    <hr style='border: none; border-top: 1px solid #eee;'>
+                    <p style='font-size: 11px; color: #999;'>Proyecto de Ingenieria en Tecnologias de la Informacion - UPBC</p>
+                </div>";
+
+            $mail->send();
+        } catch (Exception $e) {
+            // Log error or handle silently
+            error_log('Error enviando correo: ' . $mail->ErrorInfo);
+        }
     }
 }
 ?>
