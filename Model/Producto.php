@@ -20,6 +20,7 @@ class Producto {
         $query = "SELECT id_producto, nombre, descripcion, precio, stock, imagen
                   FROM " . $this->table_name . "
                   WHERE (en_promocion = 0 OR en_promocion IS NULL)
+                    AND nombre != 'Pedido personalizado'
                   ORDER BY nombre ASC";
 
         $stmt = $this->conn->prepare($query);
@@ -36,6 +37,7 @@ class Producto {
                   FROM " . $this->table_name . "
                   WHERE (nombre LIKE :term OR descripcion LIKE :term)
                     AND (en_promocion = 0 OR en_promocion IS NULL)
+                    AND nombre != 'Pedido personalizado'
                   ORDER BY nombre ASC";
 
         $stmt = $this->conn->prepare($query);
@@ -52,6 +54,7 @@ class Producto {
     public function obtenerOfertas() {
         $query = "SELECT id_producto, nombre, descripcion, precio, stock, imagen
                   FROM " . $this->table_name . "
+                  WHERE nombre != 'Pedido personalizado'
                   LIMIT 3";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
@@ -66,6 +69,7 @@ class Producto {
         $query = "SELECT id_producto, nombre, descripcion, precio, stock, imagen, en_promocion, precio_oferta
                   FROM " . $this->table_name . "
                   WHERE en_promocion = 1
+                    AND nombre != 'Pedido personalizado'
                   ORDER BY id_producto DESC";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
@@ -95,6 +99,7 @@ class Producto {
     public function obtenerOtros($limit = 8) {
         $query = "SELECT id_producto, nombre, descripcion, precio, stock, imagen
                   FROM " . $this->table_name . "
+                  WHERE nombre != 'Pedido personalizado'
                   ORDER BY nombre ASC
                   LIMIT :lim";
 
