@@ -1,4 +1,4 @@
-# LottaGourmet - Sistema de Ventas y Pedidos
+# Pasteles UPBC - Sistema de Ventas y Pedidos
 
 ## Descripción
 Sistema web responsivo para gestión de ventas de pasteles, promociones y pedidos personalizados. Incluye soporte para el inicio de sesión de usuarios, un carrito de compras interactivo, generación dinámica de catálogos y un panel administrativo completo con gráficas en tiempo real. 
@@ -42,8 +42,8 @@ LottaGourmet/
 ### 2. Base de Datos
 1. Abre el panel de control de **XAMPP** e inicia de manera simultánea `Apache` y `MySQL`.
 2. Ve a [http://localhost/phpmyadmin](http://localhost/phpmyadmin).
-3. Crea una base de datos nueva llamada `pastelesupbc`.
-4. Importa en esa base de datos recién creada el script SQL de respaldo provisto con el proyecto o (`pastelesupbc.sql`).
+3. Crea una base de datos nueva llamada `lottagourmet`.
+4. Importa en esa base de datos recién creada el script SQL de respaldo provisto con el proyecto o (`lottagourmet.sql`).
 
 ### 3. Conexiones a la BD (Database.php)
 Debes verificar que el entorno coincida dentro del archivo `Config/Database.php`. La clase `Database` maneja la conexión. Tienes dos plantillas en caso de subir este desarrollo a producción:
@@ -53,7 +53,7 @@ Debes verificar que el entorno coincida dentro del archivo `Config/Database.php`
 <?php
 class Database {
     private $host = "localhost";
-    private $db_name = "pastelesupbc";
+    private $db_name = "lottagourmet";
     private $username = "root";
     private $password = "";
     public $conn;
@@ -67,7 +67,7 @@ class Database {
 ```php
 <?php
 class Database {
-    private $host = "pastelesupbc.byethost24.com";
+    private $host = "lottagourmet.byethost24.com";
     private $db_name = "sql202.byethost24.com";
     private $username = "b24_40405106";
     private $password = "bf86ph1n";
